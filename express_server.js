@@ -60,7 +60,13 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
   res.render('urls_index', templateVars);
 
-})
+});
+
+//logout server logic
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
 
 
 //route to handle shortURL request, will redirect to long URL
