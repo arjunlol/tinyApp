@@ -99,6 +99,22 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
+//adds new user object in users
+//sets cookie to randomID
+app.post("/register", (req, res) => {
+  let randomID = generateRandomString();
+ users[randomID] = {
+    id: randomID,
+    email: req.body.email,
+    password: req.body.password
+  }
+  res.cookie("username", randomID);
+  let templateVars = {
+    username: req.cookies["username"],
+  };
+  res.redirect('/urls');
+  res.render('urls_index', templateVars);
+});
 
 
 // route handler for /urls to pass URL data to template
