@@ -36,8 +36,8 @@ app.post("/urls", (req, res) => {
   console.log(req.body);  // debug statement to see POST parameters
   let urlShortened = generateRandomString();
   urlDatabase[urlShortened] = req.body.longURL;
-  console.log(urlDatabase);
-  res.send("Ok");         // Respond with 'Ok'
+  console.log(urlDatabase);         // Respond with 'Ok'
+  res.redirect(`http://localhost:8080/urls/${urlShortened}`);
 });
 
 // route handler for /urls to pass URL data to template
