@@ -1,7 +1,9 @@
 var express = require("express");
 
-var app = express();
-var PORT = process.env.PORT || 8080; // default port 8080
+const app = express();
+const cookieParser = require('cookie-parser');
+const PORT = process.env.PORT || 8080; // default port 8080
+app.use(cookieParser());
 
 //use EJS as templating engine
 app.set("view engine", "ejs");
@@ -12,11 +14,10 @@ function generateRandomString() {
   return ((Math.random()).toString(36).substring(2,8));
 };
 
-var urlDatabase = {
+let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-
 
 app.get("/", (req, res) => {
   res.end("Hello!");
@@ -28,6 +29,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 //use urls_new template to render /urls/new endpoint
 app.get("/urls/new", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"],
+  }
   res.render("urls_new");
 });
 
@@ -49,7 +53,13 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
   //set cookie parameter to value submitted in request body form username
   res.cookie("username", req.body.username);
+
+  let templateVars = {
+    username: req.cookies["username"],
+  }
   res.redirect('/urls');
+  res.render('urls_index', templateVars);
+
 })
 
 
@@ -68,7 +78,8 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase};
+  let templateVars = { urls: urlDatabase,
+    username: req.cookies["username"]};
   res.render("urls_index", templateVars);
 });
 
@@ -77,7 +88,8 @@ app.get("/urls", (req, res) => {
 //end point formatted as ex. /urls/b2xVn2
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
-                      URL: urlDatabase};
+    URL: urlDatabase,
+    username: req.cookies["username"]};
   res.render("urls_show", templateVars);
 });
 
