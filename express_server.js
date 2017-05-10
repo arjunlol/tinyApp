@@ -6,6 +6,12 @@ var PORT = process.env.PORT || 8080; // default port 8080
 //use EJS as templating engine
 app.set("view engine", "ejs");
 
+//simulate generating 'unique' shortURL
+//will produce string of 6 ramdom alphanumeric chars
+function generateRandomString(longURL) {
+  console.log(`${longURL} is now short, not`);
+};
+
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -27,6 +33,8 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // debug statement to see POST parameters
+  let urlShortened = generateRandomString(req.body.longURL);
+
   res.send("Ok");         // Respond with 'Ok'
 });
 
