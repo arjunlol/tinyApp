@@ -33,11 +33,15 @@ app.get("/urls/new", (req, res) => {
 
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // debug statement to see POST parameters
   let urlShortened = generateRandomString();
   urlDatabase[urlShortened] = req.body.longURL;
-  console.log(urlDatabase);         // Respond with 'Ok'
-  res.redirect(`http://localhost:8080/urls/${urlShortened}`);
+  res.redirect(`/urls/${urlShortened}`);
+});
+
+//route to handle shortURL request, will redirect to long URL
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL];
+  res.redirect("http://"+longURL);
 });
 
 // route handler for /urls to pass URL data to template
