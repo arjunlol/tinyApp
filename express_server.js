@@ -44,6 +44,13 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect("http://"+longURL);
 });
 
+//post route that removes URL resource and redirects to index page
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect("/urls");
+});
+
+
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase};

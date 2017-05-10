@@ -9,7 +9,13 @@
   <!-- list of all shortened urls and links-->
   <ul>
       <% for (var key in urls) { %>
-      <li><%= key %> - <%= urls[key] %></li>
+      <form method="POST" action="/urls/9sm5xK/delete">
+        <li><%= key %> - <%= urls[key] %>
+        <button type = "submit" value = "Delete">Delete</button>
+        </li>
+      </form>
+
+
       <% } %>
   </ul>
 </body>
