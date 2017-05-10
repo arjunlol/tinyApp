@@ -8,8 +8,8 @@ app.set("view engine", "ejs");
 
 //simulate generating 'unique' shortURL
 //will produce string of 6 ramdom alphanumeric chars
-function generateRandomString(longURL) {
-  console.log(`${longURL} is now short, not`);
+function generateRandomString() {
+  return ((Math.random()).toString(36).substring(2,8));
 };
 
 var urlDatabase = {
@@ -31,10 +31,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+//adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
   console.log(req.body);  // debug statement to see POST parameters
-  let urlShortened = generateRandomString(req.body.longURL);
-
+  let urlShortened = generateRandomString();
+  urlDatabase[urlShortened] = req.body.longURL;
+  console.log(urlDatabase);
   res.send("Ok");         // Respond with 'Ok'
 });
 
