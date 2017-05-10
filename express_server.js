@@ -45,6 +45,13 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${urlShortened}`);
 });
 
+//handle header form submission to login, redirect to /urls
+app.post("/login", (req, res) => {
+  //set cookie parameter to value submitted in request body form username
+  res.cookie("username", req.body.username);
+  res.redirect('/urls');
+})
+
 
 //route to handle shortURL request, will redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
