@@ -16,12 +16,20 @@ app.get("/", (req, res) => {
   res.end("Hello!");
 });
 
-//new route handler for /urls to pass URL data to template
+// route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase};
   res.render("urls_index", templateVars);
-})
+});
 
+
+//route hander for page displaying single URL & shortened form
+//end point formatted as ex. /urls/b2xVn2
+app.get("/urls/:id", (req, res) => {
+  let templateVars = { shortURL: req.params.id,
+                      URL: urlDatabase};
+  res.render("urls_show", templateVars);
+});
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
