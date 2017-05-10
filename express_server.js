@@ -81,6 +81,12 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+//returns page that includes form with email + password field
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+
 
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
