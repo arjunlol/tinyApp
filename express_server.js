@@ -16,6 +16,20 @@ app.get("/", (req, res) => {
   res.end("Hello!");
 });
 
+//body-parser library allows to access POST request params
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
+//use urls_new template to render /urls/new endpoint
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // debug statement to see POST parameters
+  res.send("Ok");         // Respond with 'Ok'
+});
+
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase};
