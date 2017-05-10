@@ -7,7 +7,7 @@
     <!-- display full URL with its shortened form-->
 
   <!-- form submits an updated long URL -->
-  <form action="/urls" method="POST" style="margin:150px;">
+  <form action= <%=`/urls/${shortURL}`%> method="POST" style="margin:150px;">
     <h3> <%= URL[shortURL] %> <%= shortURL %></h3>
     <input type = "text" name = "updatedLongURL">
     <button type = "Submit" value = "Update">Update</button>

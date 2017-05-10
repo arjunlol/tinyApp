@@ -31,12 +31,20 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+//updates url resource
+app.post("/urls/:id", (req, res) => {
+  urlDatabase[req.params.id] = req.body.updatedLongURL;
+  console.log(req.body);
+  res.redirect("/urls");
+});
+
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
   let urlShortened = generateRandomString();
   urlDatabase[urlShortened] = req.body.longURL;
   res.redirect(`/urls/${urlShortened}`);
 });
+
 
 //route to handle shortURL request, will redirect to long URL
 app.get("/u/:shortURL", (req, res) => {

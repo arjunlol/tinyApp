@@ -8,9 +8,12 @@
   <h2>Links</h2>
   <!-- list of all shortened urls and links-->
   <ul>
-      <% for (var key in urls) { %>
-      <form method="POST" action="/urls/9sm5xK/delete">
+
+    <% for (var key in urls) { %>
+      <form method="POST" action= <%=`/urls/${key}/delete`%> >
         <li><%= key %> - <%= urls[key] %>
+
+        <a href = <%=`/urls/${key}`%>>Edit</a>
         <button type = "submit" value = "Delete">Delete</button>
         </li>
       </form>
