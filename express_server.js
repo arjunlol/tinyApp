@@ -29,6 +29,16 @@ function findLoginMatch (user) {
   return 2; //email not found
 }
 
+//return subset of URL database that belongs to user with ID id
+function urlsForUser (id) {
+  let output = {};
+  for (let key in urlDatabase) {
+    if (urlDatabase[key].userID === id) {
+      output[key] = urlDatabase[key];
+    }
+  }
+  return output;
+}
 
 
 let urlDatabase = {
@@ -41,6 +51,7 @@ let urlDatabase = {
     "userID": "user2RandomID"
   }
 };
+console.log(urlsForUser("userRandomID"))
 
 const users = {
   "userRandomID": {
