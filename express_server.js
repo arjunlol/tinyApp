@@ -31,8 +31,14 @@ function findLoginMatch (user) {
 }
 
 let urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    "urlLong": "http://www.lighthouselabs.ca",
+    "userID": "userRandomID"
+  }
+  "9sm5xK": {
+    "urlLong": "http://www.google.com",
+    "userID": "user2RandomID"
+  }
 };
 
 const users = {
@@ -74,7 +80,8 @@ app.get("/urls/new", (req, res) => {
 
 //updates url resource
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.updatedLongURL;
+  urlDatabase[req.params.id].urlLong = req.body.updatedLongURL;
+  urlDatabase[req.params.id].userID = req.cookies["username"].id;
   console.log(req.body);
   res.redirect("/urls");
 });
@@ -82,7 +89,8 @@ app.post("/urls/:id", (req, res) => {
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
   let urlShortened = generateRandomString();
-  urlDatabase[urlShortened] = req.body.longURL;
+  urlDatabase[urlShortened].urlLong = req.body.longURL;
+  urlDatabase[urlShortened].userID = req.cookies["username"].id;
   res.redirect(`/urls/${urlShortened}`);
 });
 
@@ -127,7 +135,7 @@ app.post("/logout", (req, res) => {
 
 //route to handle shortURL request, will redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].urlLong;
   res.redirect("http://"+longURL);
 });
 
@@ -187,7 +195,7 @@ app.get("/urls", (req, res) => {
 //end point formatted as ex. /urls/b2xVn2
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
-    URL: urlDatabase,
+    urls: urlDatabase,
     username: req.cookies["username"]};
   res.render("urls_show", templateVars);
 });
