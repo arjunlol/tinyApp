@@ -40,7 +40,6 @@ function urlsForUser (id) {
   return output;
 }
 
-
 let urlDatabase = {
   "b2xVn2": {
     "urlLong": "http://www.lighthouselabs.ca",
@@ -51,7 +50,6 @@ let urlDatabase = {
     "userID": "user2RandomID"
   }
 };
-console.log(urlsForUser("userRandomID"))
 
 const users = {
   "userRandomID": {
@@ -101,8 +99,9 @@ app.post("/urls/:id", (req, res) => {
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
   let urlShortened = generateRandomString();
-  urlDatabase[urlShortened].urlLong = req.body.longURL;
-  urlDatabase[urlShortened].userID = req.cookies["username"].id;
+  urlDatabase[urlShortened] = {};
+  urlDatabase[urlShortened]["urlLong"] = req.body.longURL;
+  urlDatabase[urlShortened].userID = req.cookies.username.id;
   res.redirect(`/urls/${urlShortened}`);
 });
 
@@ -203,9 +202,15 @@ app.post("/register", (req, res) => {
 
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase,
+  if (!req.cookies.username) {
+    res.status(400).send("Please Login or Register");
+    return;
+  } else {
+  let id = req.cookies.username.id;
+  let templateVars = { urls: urlsForUser(id),
     username: req.cookies["username"]};
   res.render("urls_index", templateVars);
+  }
 });
 
 
