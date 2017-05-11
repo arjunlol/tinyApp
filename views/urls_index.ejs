@@ -10,7 +10,7 @@
   <ul>
 
     <% for (var key in urls) { %>
-      <form method="POST" action= <%=`/urls/${key}/delete`%> >
+      <form method="POST" action= <%=`/urls/${key}/delete?_method=DELETE`%> >
         <li><%= key %> - <%= urls[key].urlLong %>
 
         <a href = <%=`/urls/${key}`%>>Edit</a>

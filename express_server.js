@@ -1,8 +1,13 @@
 var express = require("express");
+const methodOverride = require('method-override');
 const app = express();
 const cookieSession = require('cookie-session');
 const PORT = process.env.PORT || 8080; // default port 8080
 const bcrypt = require('bcrypt');
+
+//override with POST
+app.use(methodOverride('_method'));
+
 app.use(cookieSession({
   name: 'session',
   keys: ['secret'],
@@ -46,6 +51,8 @@ function urlsForUser (id) {
   return output;
 }
 
+let iddd = bcrypt.hashSync("purple-monkey-dinosaur",10);
+
 let urlDatabase = {
   "b2xVn2": {
     "urlLong": "http://www.lighthouselabs.ca",
@@ -61,7 +68,7 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: iddd
   },
  "user2RandomID": {
     id: "user2RandomID",
@@ -95,10 +102,9 @@ app.get("/urls/new", (req, res) => {
 });
 
 //updates url resource
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   urlDatabase[req.params.id].urlLong = req.body.updatedLongURL;
   urlDatabase[req.params.id].userID = req.session.username.id;
-  console.log(req.body);
   res.redirect("/urls");
 });
 
@@ -157,7 +163,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 //post route that removes URL resource and redirects to index page
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id/delete", (req, res) => {
   //only delete if the user created that link
   if (req.session.username && req.session.username.id === urlDatabase[req.params.id].userID) {
     delete urlDatabase[req.params.id];
