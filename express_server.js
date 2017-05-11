@@ -15,6 +15,21 @@ function generateRandomString() {
   return ((Math.random()).toString(36).substring(2,8));
 };
 
+//find a user that matches the email submitted and check password
+function findLoginMatch (user) {
+  for (let key in users) {
+    if (users[key].email === user.email) {
+      if (users[key].password === user.password) {
+        return key;
+      } else {
+        return 1; // password incorrect for that user
+      }
+    }
+  }
+  return 2; //email not found
+
+}
+
 let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -65,14 +80,28 @@ app.post("/urls", (req, res) => {
 
 //handle header form submission to login, redirect to /urls
 app.post("/login", (req, res) => {
-  //set cookie parameter to value submitted in request body form username
-  res.cookie("username", req.body.username);
 
-  let templateVars = {
-    username: req.cookies["username"],
+  let user = {
+    "email": req.body.email,
+    "password": req.body.password
+  };
+  let match = findLoginMatch(user);
+  if (match === 1){
+    res.status(403).send("Invalid Password");
+    return;
+  } else if (match === 2){
+    res.status(403).send("Invalid Password");
+    return;
+  } else {
+    //set cookie parameter to value submitted in request body form username
+    res.cookie("username", users[match]);
   }
+
+  // let templateVars = {
+  //   username: req.cookies["username"],
+  // }
   res.redirect('/urls');
-  res.render('urls_index', templateVars);
+ // res.render('urls_index', templateVars);
 
 });
 
