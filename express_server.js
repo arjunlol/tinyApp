@@ -58,10 +58,18 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 //use urls_new template to render /urls/new endpoint
 app.get("/urls/new", (req, res) => {
+
+  //if not logged in redirect to login page
+  if (!req.cookies["username"]){
+    res.redirect("/login");
+    return;
+  };
+
   let templateVars = {
-    username: req.cookies["username"],
+    urls: urlDatabase,
+    username: req.cookies["username"]
   }
-  res.render("urls_new");
+  res.render("urls_new", templateVars);
 });
 
 //updates url resource
@@ -107,7 +115,6 @@ app.post("/login", (req, res) => {
 
 app.get("/login", (req,res) => {
   res.render('login');
-
 });
 
 
