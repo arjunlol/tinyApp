@@ -3,6 +3,7 @@ var express = require("express");
 const app = express();
 const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 8080; // default port 8080
+const bcrypt = require('bcrypt');
 app.use(cookieParser());
 let randomID = "";
 
@@ -19,7 +20,7 @@ function generateRandomString() {
 function findLoginMatch (user) {
   for (let key in users) {
     if (users[key].email === user.email) {
-      if (users[key].password === user.password) {
+      if (bcrypt.compareSync(user.password, users[key].password)){
         return key;
       } else {
         return 1; // password incorrect for that user
@@ -172,7 +173,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   let randomID = generateRandomString();
   //registration handle error
-  if(req.body.email === "" || req.body.password === ""){
+  if(req.body.email === "" ||  bcrypt.hashSync(req.body.password,10) === ""){
     res.status(400).send("Please enter email");
     return;
   };
@@ -188,8 +189,9 @@ app.post("/register", (req, res) => {
  users[randomID] = {
     id: randomID,
     email: req.body.email,
-    password: req.body.password
+    password:  bcrypt.hashSync(req.body.password,10)
   }
+console.log(users);
   res.cookie("username", users[randomID]);
   let templateVars = {urls: urlDatabase,
     username: req.cookies["username"],
@@ -198,7 +200,6 @@ app.post("/register", (req, res) => {
 //  res.render('urls_index', templateVars);
 //  res.redirect('/urls');
 });
-
 
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
