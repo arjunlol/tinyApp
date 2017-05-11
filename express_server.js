@@ -100,7 +100,7 @@ app.post("/login", (req, res) => {
   // let templateVars = {
   //   username: req.cookies["username"],
   // }
-  res.redirect('/urls');
+  res.redirect('/');
  // res.render('urls_index', templateVars);
 
 });
