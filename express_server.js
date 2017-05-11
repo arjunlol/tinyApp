@@ -27,14 +27,15 @@ function findLoginMatch (user) {
     }
   }
   return 2; //email not found
-
 }
+
+
 
 let urlDatabase = {
   "b2xVn2": {
     "urlLong": "http://www.lighthouselabs.ca",
     "userID": "userRandomID"
-  }
+  },
   "9sm5xK": {
     "urlLong": "http://www.google.com",
     "userID": "user2RandomID"
@@ -141,8 +142,14 @@ app.get("/u/:shortURL", (req, res) => {
 
 //post route that removes URL resource and redirects to index page
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect("/urls");
+  //only delete if the user created that link
+  if (req.cookies.username && req.cookies.username.id === urlDatabase[req.params.id].userID) {
+    delete urlDatabase[req.params.id];
+    res.redirect("/urls");
+  } else {
+    res.status(400).send("That's not your url!");
+    return;
+  }
 });
 
 //returns page that includes form with email + password field
@@ -194,10 +201,15 @@ app.get("/urls", (req, res) => {
 //route hander for page displaying single URL & shortened form
 //end point formatted as ex. /urls/b2xVn2
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id,
+  if (req.cookies.username && req.cookies.username.id === urlDatabase[req.params.id].userID) {
+    let templateVars = { shortURL: req.params.id,
     urls: urlDatabase,
     username: req.cookies["username"]};
-  res.render("urls_show", templateVars);
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(400).send("That's not your url!");
+    return;
+  };
 });
 
 app.get("/urls.json", (req, res) => {

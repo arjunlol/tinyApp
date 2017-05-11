@@ -8,7 +8,7 @@
 
   <!-- form submits an updated long URL -->
   <form action= <%=`/urls/${shortURL}`%> method="POST" style="margin:150px;">
-    <h3> <%= URL[shortURL] %> <%= shortURL %></h3>
+    <h3> <%= urls[shortURL].urlLong %> <%= shortURL %></h3>
     <input type = "text" name = "updatedLongURL">
     <button type = "Submit" value = "Update">Update</button>
   </form>
