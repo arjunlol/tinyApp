@@ -76,6 +76,12 @@ app.post("/login", (req, res) => {
 
 });
 
+app.get("/login", (req,res) => {
+  res.render('login');
+
+};
+
+
 //logout server logic
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
