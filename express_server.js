@@ -56,11 +56,13 @@ let iddd = bcrypt.hashSync("purple-monkey-dinosaur",10);
 let urlDatabase = {
   "b2xVn2": {
     "urlLong": "http://www.lighthouselabs.ca",
-    "userID": "userRandomID"
+    "userID": "userRandomID",
+    "visitors": 0 //keep track how many times URL visited
   },
   "9sm5xK": {
     "urlLong": "http://www.google.com",
-    "userID": "user2RandomID"
+    "userID": "user2RandomID",
+    "visitors": 0
   }
 };
 
@@ -159,6 +161,14 @@ app.post("/logout", (req, res) => {
 //route to handle shortURL request, will redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL].urlLong;
+
+  //track how many visitors
+  if (!urlDatabase[req.params.shortURL].visitors) {
+    urlDatabase[req.params.shortURL].visitors = 1;
+  } else {
+  urlDatabase[req.params.shortURL].visitors += 1;
+  }
+  console.log(urlDatabase[req.params.shortURL].visitors);
   res.redirect("http://"+longURL);
 });
 
