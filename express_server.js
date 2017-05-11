@@ -103,17 +103,29 @@ app.get("/register", (req, res) => {
 //sets cookie to randomID
 app.post("/register", (req, res) => {
   let randomID = generateRandomString();
+  //registration handle error
+  if(req.body.email === "" || req.body.password === ""){
+    res.status(400).send("Please enter email");
+  };
+  //check if email already registered
+  for (let key in users){
+    if (users[key].email === req.body.email){
+      res.status(400).send("Email already registered");
+    };
+  };
+
+  //append to users object
  users[randomID] = {
     id: randomID,
     email: req.body.email,
     password: req.body.password
   }
   res.cookie("username", randomID);
-  let templateVars = {
-    username: req.cookies["username"],
+  let templateVars = {urls: urlDatabase,
+    username: users[randomID],
   };
+ // res.render('urls_index', templateVars);
   res.redirect('/urls');
-  res.render('urls_index', templateVars);
 });
 
 
