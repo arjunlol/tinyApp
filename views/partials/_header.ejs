@@ -2,7 +2,7 @@
 <header>
   <h1>Tiny App</h1>
   <% if (username) { %>
-    <p> <%= username %></p>
+    <p> <%= username.id %></p>
     <!-- logout client logic -->
   <form action = "/logout" method = "POST">
     <button type = "submit" value = "Logout">Logout</button>

@@ -4,6 +4,7 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 8080; // default port 8080
 app.use(cookieParser());
+let randomID = "";
 
 //use EJS as templating engine
 app.set("view engine", "ejs");
@@ -106,11 +107,13 @@ app.post("/register", (req, res) => {
   //registration handle error
   if(req.body.email === "" || req.body.password === ""){
     res.status(400).send("Please enter email");
+    return;
   };
   //check if email already registered
   for (let key in users){
     if (users[key].email === req.body.email){
       res.status(400).send("Email already registered");
+      return;
     };
   };
 
@@ -120,12 +123,13 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password
   }
-  res.cookie("username", randomID);
+  res.cookie("username", users[randomID]);
   let templateVars = {urls: urlDatabase,
-    username: users[randomID],
+    username: req.cookies["username"],
   };
- // res.render('urls_index', templateVars);
   res.redirect('/urls');
+//  res.render('urls_index', templateVars);
+//  res.redirect('/urls');
 });
 
 
