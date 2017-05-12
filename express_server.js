@@ -72,13 +72,17 @@ let urlDatabase = {
     "urlLong": "http://www.lighthouselabs.ca",
     "userID": "userRandomID",
     "visitors": 0, //keep track how many times URL visited
-    "uniqueVisitors": 0
+    "uniqueVisitors": 0,
+    "visitorID": [],
+    "timestamps": []
   },
   "9sm5xK": {
     "urlLong": "http://www.google.com",
     "userID": "user2RandomID",
     "visitors": 0,
-    "uniqueVisitors": 0
+    "uniqueVisitors": 0,
+    "visitorID": [],
+    "timestamps": []
   }
 };
 
@@ -191,6 +195,7 @@ app.get("/u/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL].visitors += 1;
   }
 
+  //make the visitors object if no session cookie
   if (!req.session.visitor) {
     req.session.visitor = generateRandomString();
     console.log(req.session.visitor);
@@ -199,27 +204,42 @@ app.get("/u/:shortURL", (req, res) => {
       shorturls: [req.params.shortURL],
       timestamps: [Date.now()]
     };
-
-    if (!urlDatabase[req.params.shortURL].uniqueVisitors) {
+    //add to visitor id & timespamps array
+    if (!urlDatabase[req.params.shortURL].visitorID) {
+      urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
+      urlDatabase[req.params.shortURL].timestamps = [Date.now()];
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
     } else {
+      urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
+      urlDatabase[req.params.shortURL].timestamps.push(Date.now());
       urlDatabase[req.params.shortURL].uniqueVisitors += 1;
     }
-    //else user visitor cookie, but not that website
+    //else user has a cookie, and is unique
   } else if (isVisitorUnique(req.session.visitor, req.params.shortURL)) {
-
     visitors[req.session.visitor].shorturls.push(req.params.shortURL);
     visitors[req.session.visitor].timestamps.push(Date.now());
-
-    if (!urlDatabase[req.params.shortURL].uniqueVisitors) {
+    //add to visitor id & timespamps array
+    if (!urlDatabase[req.params.shortURL].visitorID) {
+      urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
+      urlDatabase[req.params.shortURL].timestamps = [Date.now()];
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
     } else {
+      urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
+      urlDatabase[req.params.shortURL].timestamps.push(Date.now());
       urlDatabase[req.params.shortURL].uniqueVisitors += 1;
     }
-
-    //else user visitor cookie and that website
+    //else user visitor cookie and is not unique
   } else {
     visitors[req.session.visitor].timestamps.push(Date.now());
+    if (!urlDatabase[req.params.shortURL].visitorID) {
+      urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
+      urlDatabase[req.params.shortURL].timestamps = [Date.now()];
+      urlDatabase[req.params.shortURL].uniqueVisitors = 1;
+    } else {
+      urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
+      urlDatabase[req.params.shortURL].timestamps.push(Date.now());
+    }
+
   }
   console.log(visitors);
   console.log(urlDatabase);
