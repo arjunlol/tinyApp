@@ -202,42 +202,42 @@ app.get("/u/:shortURL", (req, res) => {
     visitors[req.session.visitor] = {
       id: req.session.visitor,
       shorturls: [req.params.shortURL],
-      timestamps: [Date.now()]
+      timestamps: [new Date()]
     };
     //add to visitor id & timespamps array
     if (!urlDatabase[req.params.shortURL].visitorID) {
       urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].timestamps = [Date.now()];
+      urlDatabase[req.params.shortURL].timestamps = [new Date()];
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
     } else {
       urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
-      urlDatabase[req.params.shortURL].timestamps.push(Date.now());
+      urlDatabase[req.params.shortURL].timestamps.push(new Date());
       urlDatabase[req.params.shortURL].uniqueVisitors += 1;
     }
     //else user has a cookie, and is unique
   } else if (isVisitorUnique(req.session.visitor, req.params.shortURL)) {
     visitors[req.session.visitor].shorturls.push(req.params.shortURL);
-    visitors[req.session.visitor].timestamps.push(Date.now());
+    visitors[req.session.visitor].timestamps.push(new Date());
     //add to visitor id & timespamps array
     if (!urlDatabase[req.params.shortURL].visitorID) {
       urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].timestamps = [Date.now()];
+      urlDatabase[req.params.shortURL].timestamps = [new Date()];
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
     } else {
       urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
-      urlDatabase[req.params.shortURL].timestamps.push(Date.now());
+      urlDatabase[req.params.shortURL].timestamps.push(new Date());
       urlDatabase[req.params.shortURL].uniqueVisitors += 1;
     }
     //else user visitor cookie and is not unique
   } else {
-    visitors[req.session.visitor].timestamps.push(Date.now());
+    visitors[req.session.visitor].timestamps.push(new Date());
     if (!urlDatabase[req.params.shortURL].visitorID) {
       urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].timestamps = [Date.now()];
+      urlDatabase[req.params.shortURL].timestamps = [new Date()];
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
     } else {
       urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
-      urlDatabase[req.params.shortURL].timestamps.push(Date.now());
+      urlDatabase[req.params.shortURL].timestamps.push(new Date());
     }
 
   }
