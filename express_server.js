@@ -16,6 +16,7 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 let randomID = "";
+let uniqueVisitors = 0;
 
 //use EJS as templating engine
 app.set("view engine", "ejs");
@@ -51,18 +52,33 @@ function urlsForUser (id) {
   return output;
 }
 
+function isVisitorUnique(visitor, shorturl){
+  for (let id in visitors) {
+    if (id === visitor){
+      for (let index of visitors[visitor].shorturls) {
+        if (index === shorturl) {
+          return  false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 let iddd = bcrypt.hashSync("purple-monkey-dinosaur",10);
 
 let urlDatabase = {
   "b2xVn2": {
     "urlLong": "http://www.lighthouselabs.ca",
     "userID": "userRandomID",
-    "visitors": 0 //keep track how many times URL visited
+    "visitors": 0, //keep track how many times URL visited
+    "uniqueVisitors": 0
   },
   "9sm5xK": {
     "urlLong": "http://www.google.com",
     "userID": "user2RandomID",
-    "visitors": 0
+    "visitors": 0,
+    "uniqueVisitors": 0
   }
 };
 
@@ -76,6 +92,14 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
+  }
+}
+
+const visitors = {
+  "visitorID": {
+    id: "visitorID",
+    shorturls: ["test","test2"],
+    timestamps: []
   }
 }
 
@@ -116,6 +140,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[urlShortened] = {};
   urlDatabase[urlShortened]["urlLong"] = req.body.longURL;
   urlDatabase[urlShortened].userID = req.session.username.id;
+  console.log(urlDatabase);
   res.redirect(`/urls/${urlShortened}`);
 });
 
@@ -156,19 +181,48 @@ app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
-
-
 //route to handle shortURL request, will redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL].urlLong;
-
   //track how many visitors
   if (!urlDatabase[req.params.shortURL].visitors) {
     urlDatabase[req.params.shortURL].visitors = 1;
   } else {
   urlDatabase[req.params.shortURL].visitors += 1;
   }
-  console.log(urlDatabase[req.params.shortURL].visitors);
+
+  if (!req.session.visitor) {
+    req.session.visitor = generateRandomString();
+    console.log(req.session.visitor);
+    visitors[req.session.visitor] = {
+      id: req.session.visitor,
+      shorturls: [req.params.shortURL],
+      timestamps: [Date.now()]
+    };
+
+    if (!urlDatabase[req.params.shortURL].uniqueVisitors) {
+      urlDatabase[req.params.shortURL].uniqueVisitors = 1;
+    } else {
+      urlDatabase[req.params.shortURL].uniqueVisitors += 1;
+    }
+    //else user visitor cookie, but not that website
+  } else if (isVisitorUnique(req.session.visitor, req.params.shortURL)) {
+
+    visitors[req.session.visitor].shorturls.push(req.params.shortURL);
+    visitors[req.session.visitor].timestamps.push(Date.now());
+
+    if (!urlDatabase[req.params.shortURL].uniqueVisitors) {
+      urlDatabase[req.params.shortURL].uniqueVisitors = 1;
+    } else {
+      urlDatabase[req.params.shortURL].uniqueVisitors += 1;
+    }
+
+    //else user visitor cookie and that website
+  } else {
+    visitors[req.session.visitor].timestamps.push(Date.now());
+  }
+  console.log(visitors);
+  console.log(urlDatabase);
   res.redirect("http://"+longURL);
 });
 
@@ -243,7 +297,9 @@ app.get("/urls/:id", (req, res) => {
   if (req.session.username && req.session.username.id === urlDatabase[req.params.id].userID) {
     let templateVars = { shortURL: req.params.id,
     urls: urlDatabase,
-    username: req.session.username};
+    username: req.session.username,
+    visit: visitors
+  };
     res.render("urls_show", templateVars);
   } else {
     res.status(400).send("That's not your url!");

@@ -12,6 +12,14 @@
     <input type = "text" name = "updatedLongURL">
     <button type = "Submit" value = "Update">Update</button>
   </form>
-  <h5> Visitors: <%= urls[shortURL].visitors%> </h5>
+  <% if (urls[shortURL].visitors) { %>
+    <h5> Visitors: <%= urls[shortURL].visitors%> </h5>
+  <% } %>
+  <% if (urls[shortURL].visitors) { %>
+    <h5> Unquie Visitors: <%= urls[shortURL].uniqueVisitors%> </h5>
+  <% } %>
+
+
+
 </body>
 </html>
