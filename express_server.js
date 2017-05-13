@@ -108,17 +108,15 @@ app.get("/", (req, res) => {
 
 //use urls_new template to render /urls/new endpoint
 app.get("/urls/new", (req, res) => {
-  //if not logged in redirect to login page
-  if (!req.session.username) {
+  if (!req.session.username) { //if not logged in redirect to login page
     res.redirect("/login");
-    return;
-  };
-
-  let templateVars = {
-    urls: urlDatabase,
-    username: req.session.username
+  } else {
+    let templateVars = {
+      urls: urlDatabase,
+      username: req.session.username
+    };
+    res.render("urls_new", templateVars);
   }
-  res.render("urls_new", templateVars);
 });
 
 //route hander for page displaying single URL & shortened form
@@ -153,47 +151,37 @@ app.put("/urls/:id", (req, res) => {
   }
 });
 
+// route handler for /urls to pass URL data to template
+app.get("/urls", (req, res) => {
+  if (!req.session.username) { //not logged in
+    res.status(403).send("Please Login or Register");
+  } else { //user logged in, only send subset of url database that belongs to user
+    let id = req.session.username.id;
+    let templateVars = { urls: findUrlsForUser(id),
+      username: req.session.username};
+    res.render("urls_index", templateVars);
+  }
+});
+
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
-    if(!req.session.username){
-      res.status(403).send("Please login or register!");
+  if(!req.session.username){
+    res.status(403).send("Please login or register!");
     return;
   }
   let urlShortened = generateRandomString();
-  urlDatabase[urlShortened] = {};
-  urlDatabase[urlShortened]["urlLong"] = req.body.longURL;
-  urlDatabase[urlShortened].userID = req.session.username.id;
-  urlDatabase[urlShortened].timestamps = [new Date()]; //first index reps date created
-
-  console.log(urlDatabase);
-  res.redirect(`/urls/${urlShortened}`);
-});
-
-//handle header form submission to login, redirect to /urls
-app.post("/login", (req, res) => {
-
-  let user = {
-    "email": req.body.email,
-    "password": req.body.password
+  urlDatabase[urlShortened] = {
+    "urlLong": req.body.longURL,
+    "userID": req.session.username.id,
+    "visitors": 0, //keep track how many times URL visited
+    "uniqueVisitors": 0,
+    "visitorID": [],
+    "timestamps": [new Date()] //first index reps date created]
   };
-  let match = findLoginMatch(user);
-  if (match === 1){
-    res.status(403).send("Invalid Password");
-    return;
-  } else if (match === 2){
-    res.status(403).send("Invalid Password");
-    return;
-  } else {
-    //set cookie parameter to value submitted in request body form username
-    req.session.username = users[match];
-  }
-
-  // let templateVars = {
-  //   username: req.session.username,
-  // }
-  res.redirect('/');
- // res.render('urls_index', templateVars);
-
+  // urlDatabase[urlShortened]["urlLong"] = req.body.longURL;
+  // urlDatabase[urlShortened].userID = req.session.username.id;
+  // urlDatabase[urlShortened].timestamps = [new Date()]; //first index reps date created
+  res.redirect(`/urls/${urlShortened}`);
 });
 
 app.get("/login", (req,res) => {
@@ -204,21 +192,91 @@ app.get("/login", (req,res) => {
   }
 });
 
+//handle header form submission to login, redirect to /urls
+app.post("/login", (req, res) => {
+  if(req.body.email === "" ||  req.body.password === ""){ //if user or pass left empty
+    res.status(400).send("Please fill in both email and password");
+    return;
+  }
+  let user = {
+    "email": req.body.email,
+    "password": req.body.password
+  };
+  let match = findLoginMatch(user); //return 1 if wrong pass, 2 if email doesn't exist, users id if pass and user match
+  switch (match) {
+    case 1:
+      res.status(403).send("Invalid Password");
+      break;
+    case 2:
+      res.status(403).send("Email not found");
+      break
+    default:
+      //set cookie parameter to value submitted in request body form username
+      req.session.username = users[match];
+      res.redirect('/');
+  }
+
+
+  // if (match === 1){
+  //   res.status(403).send("Invalid Password");
+  // } else if (match === 2){
+  //   res.status(403).send("Email not found");
+  // } else {
+  //   //set cookie parameter to value submitted in request body form username
+  //   req.session.username = users[match];
+  //   res.redirect('/');
+  // }
+});
 
 //logout server logic
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
+
+//returns page that includes form with email + password field
+app.get("/register", (req, res) => {
+  if (req.session.username) { //user already logged in
+    res.redirect('/urls');
+  } else { //user not logged in
+    res.render("register");
+  }
+});
+
+//adds new user object in users and set cookie
+app.post("/register", (req, res) => {
+  let randomID = generateRandomString();
+  //check if email and password field filled
+  if(req.body.email === "" ||  req.body.password === ""){
+    res.status(400).send("Please fill in both email and password");
+    return;
+  }
+  //check if email already registered
+  for (let key in users){
+    if (users[key].email === req.body.email){
+      res.status(400).send("Email already registered");
+      return;
+    }
+  }
+  //append to users object
+ users[randomID] = {
+    id: randomID,
+    email: req.body.email,
+    password:  bcrypt.hashSync(req.body.password,10) //only store encrypted password
+  }
+  req.session.username = users[randomID]; //set cookie
+  let templateVars = {urls: urlDatabase,
+    username: req.session.username,
+  };
+  res.redirect('/urls');
+});
+
 //route to handle shortURL request, will redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
-
-  if(!urlDatabase[req.params.shortURL]){
+  if(!urlDatabase[req.params.shortURL]){ //no shorturl
     res.status(404).send("URL does not exist!");
     return;
   }
-
-
 
   let longURL = urlDatabase[req.params.shortURL].urlLong;
   //track how many visitors
@@ -274,8 +332,6 @@ app.get("/u/:shortURL", (req, res) => {
     }
 
   }
-  console.log(visitors);
-  console.log(urlDatabase);
   res.redirect("http://"+longURL);
 });
 
@@ -286,67 +342,10 @@ app.delete("/urls/:id/delete", (req, res) => {
     delete urlDatabase[req.params.id];
     res.redirect("/urls");
   } else {
-    res.status(400).send("That's not your url!");
+    res.status(404).send("That's not your url!");
     return;
   }
 });
-
-//returns page that includes form with email + password field
-app.get("/register", (req, res) => {
-
-  if (req.session.username) {
-    res.redirect('/urls');
-  } else {
-    res.render("register");
-  }
-});
-
-//adds new user object in users
-//sets cookie to randomID
-app.post("/register", (req, res) => {
-  let randomID = generateRandomString();
-  //registration handle error
-  if(req.body.email === "" ||  req.body.password === ""){
-    res.status(400).send("Please fill in both email and password");
-    return;
-  };
-  //check if email already registered
-  for (let key in users){
-    if (users[key].email === req.body.email){
-      res.status(400).send("Email already registered");
-      return;
-    };
-  };
-
-  //append to users object
- users[randomID] = {
-    id: randomID,
-    email: req.body.email,
-    password:  bcrypt.hashSync(req.body.password,10)
-  }
-  req.session.username = users[randomID];
-  let templateVars = {urls: urlDatabase,
-    username: req.session.username,
-  };
-  res.redirect('/urls');
-//  res.render('urls_index', templateVars);
-//  res.redirect('/urls');
-});
-
-// route handler for /urls to pass URL data to template
-app.get("/urls", (req, res) => {
-  if (!req.session.username) {
-    res.status(400).send("Please Login or Register");
-    return;
-  } else {
-  let id = req.session.username.id;
-  let templateVars = { urls: findUrlsForUser(id),
-    username: req.session.username};
-  res.render("urls_index", templateVars);
-  }
-});
-
-
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
