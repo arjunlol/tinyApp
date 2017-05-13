@@ -197,7 +197,11 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req,res) => {
+  if (req.session.username) {
+    res.redirect('/urls');
+  } else {
   res.render('login');
+  }
 });
 
 
