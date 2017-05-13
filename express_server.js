@@ -1,11 +1,13 @@
-var express = require("express");
-const methodOverride = require('method-override');
+const express = require("express");
 const app = express();
+const methodOverride = require('method-override');
 const cookieSession = require('cookie-session');
 const PORT = process.env.PORT || 8080; // default port 8080
 const bcrypt = require('bcrypt');
-
-//override with POST
+//body-parser library allows to access POST request params
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+//override with put or delete inplace of "method"
 app.use(methodOverride('_method'));
 
 app.use(cookieSession({
@@ -15,8 +17,6 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
-let randomID = "";
-let uniqueVisitors = 0;
 
 //use EJS as templating engine
 app.set("view engine", "ejs");
@@ -24,7 +24,7 @@ app.set("view engine", "ejs");
 //simulate generating 'unique' shortURL
 //will produce string of 6 ramdom alphanumeric chars
 function generateRandomString() {
-  return ((Math.random()).toString(36).substring(2,8));
+  return ((Math.random()).toString(36).substring(2, 8));
 };
 
 //find a user that matches the email submitted and check password
@@ -32,26 +32,27 @@ function findLoginMatch (user) {
   for (let key in users) {
     if (users[key].email === user.email) {
       if (bcrypt.compareSync(user.password, users[key].password)){
-        return key;
+        return key; //if valid user and password return the key
       } else {
         return 1; // password incorrect for that user
       }
     }
   }
   return 2; //email not found
-}
+};
 
 //return subset of URL database that belongs to user with ID id
-function urlsForUser (id) {
-  let output = {};
+function findUrlsForUser (id) {
+  let subset = {};
   for (let key in urlDatabase) {
     if (urlDatabase[key].userID === id) {
-      output[key] = urlDatabase[key];
+      subset[key] = urlDatabase[key];
     }
   }
-  return output;
-}
+  return subset;
+};
 
+//returns false if visitor is not unique to given url and true if never visited url
 function isVisitorUnique(visitor, shorturl){
   for (let id in visitors) {
     if (id === visitor){
@@ -65,50 +66,38 @@ function isVisitorUnique(visitor, shorturl){
   return true;
 }
 
-let iddd = bcrypt.hashSync("purple-monkey-dinosaur",10);
-
 let urlDatabase = {
-  "b2xVn2": {
-    "urlLong": "http://www.lighthouselabs.ca",
-    "userID": "userRandomID",
-    "visitors": 0, //keep track how many times URL visited
-    "uniqueVisitors": 0,
-    "visitorID": [],
-    "timestamps": []
-  },
-  "9sm5xK": {
-    "urlLong": "http://www.google.com",
-    "userID": "user2RandomID",
-    "visitors": 0,
-    "uniqueVisitors": 0,
-    "visitorID": [],
-    "timestamps": []
-  }
+  // example object inside database below
+  // "b2xVn2": {
+  //   "urlLong": "http://www.lighthouselabs.ca",
+  //   "userID": "userRandomID", //user id that created
+  //   "visitors": 0, //keep track how many times URL visited
+  //   "uniqueVisitors": 0, //how many unique visitors
+  //   "visitorID": [], //ids of everyone that visits (id is not session.visitor cookie id because you do not need to be logged in to see
+  //   "timestamps": [] //first index is date created, then all times visited
+  // }
 };
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: iddd
-  },
- "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
+  //example users object below
+  // "userRandomID": {
+  //   id: "userRandomID",
+  //   email: "user@example.com",
+  //   password: iddd
+  // }
 }
 
 const visitors = {
-  "visitorID": {
-    id: "visitorID",
-    shorturls: ["test","test2"],
-    timestamps: []
-  }
+  //example visitors object below, help keep track of urls visited by session.visitor cookies
+  // "visitorID": {
+  //   id: "visitorID",
+  //   shorturls: ["test","test2"],
+  //   timestamps: []
+  // }
 }
 
 app.get("/", (req, res) => {
-  //if user if logged in redirect to /urls
+  //if user is logged in redirect to /urls
   if (req.session.username) {
     res.redirect("/urls");
   } else { // else to /login
@@ -116,9 +105,6 @@ app.get("/", (req, res) => {
   }
 });
 
-//body-parser library allows to access POST request params
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 
 //use urls_new template to render /urls/new endpoint
 app.get("/urls/new", (req, res) => {
@@ -297,9 +283,8 @@ app.get("/register", (req, res) => {
   if (req.session.username) {
     res.redirect('/urls');
   } else {
-    res.render('login');
+    res.render("register");
   }
-  res.render("register");
 });
 
 //adds new user object in users
@@ -308,7 +293,7 @@ app.post("/register", (req, res) => {
   let randomID = generateRandomString();
   //registration handle error
   if(req.body.email === "" ||  req.body.password === ""){
-    res.status(400).send("Please enter email");
+    res.status(400).send("Please fill in both email and password");
     return;
   };
   //check if email already registered
@@ -341,7 +326,7 @@ app.get("/urls", (req, res) => {
     return;
   } else {
   let id = req.session.username.id;
-  let templateVars = { urls: urlsForUser(id),
+  let templateVars = { urls: findUrlsForUser(id),
     username: req.session.username};
   res.render("urls_index", templateVars);
   }
