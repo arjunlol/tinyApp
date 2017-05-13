@@ -293,6 +293,12 @@ app.delete("/urls/:id/delete", (req, res) => {
 
 //returns page that includes form with email + password field
 app.get("/register", (req, res) => {
+
+  if (req.session.username) {
+    res.redirect('/urls');
+  } else {
+    res.render('login');
+  }
   res.render("register");
 });
 
