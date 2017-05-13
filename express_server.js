@@ -138,6 +138,16 @@ app.get("/urls/new", (req, res) => {
 
 //updates url resource
 app.put("/urls/:id", (req, res) => {
+  if(!req.session.username){
+    res.status(400).send("Please login or register!");
+    return;
+  }
+
+  if (!req.session.username.id === urlDatabase[req.params.id].userID) {
+    res.status(400).send("That's not your url!");
+    return;
+  };
+
   urlDatabase[req.params.id].urlLong = req.body.updatedLongURL;
   urlDatabase[req.params.id].userID = req.session.username.id;
   res.redirect("/urls");
@@ -145,6 +155,10 @@ app.put("/urls/:id", (req, res) => {
 
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
+    if(!req.session.username){
+      res.status(400).send("Please login or register!");
+    return;
+  }
   let urlShortened = generateRandomString();
   urlDatabase[urlShortened] = {};
   urlDatabase[urlShortened]["urlLong"] = req.body.longURL;
@@ -194,6 +208,14 @@ app.post("/logout", (req, res) => {
 });
 //route to handle shortURL request, will redirect to long URL
 app.get("/u/:shortURL", (req, res) => {
+
+  if(!urlDatabase[req.params.shortURL]){
+    res.status(404).send("URL does not exist!");
+    return;
+  }
+
+
+
   let longURL = urlDatabase[req.params.shortURL].urlLong;
   //track how many visitors
   if (!urlDatabase[req.params.shortURL].visitors) {
