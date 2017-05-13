@@ -8,18 +8,23 @@
   <h2>Links</h2>
   <!-- list of all shortened urls and links-->
   <ul>
-
+    <!-- loop through all short urls in url database object -->
+    <!-- short url, long url, edit, delete in list -->
     <% for (var key in urls) { %>
+      <!-- method override, post action to delete -->
       <form method="POST" action= <%=`/urls/${key}/delete?_method=DELETE`%> >
         <li><%= key %> - <%= urls[key].urlLong %>
-
         <a href = <%=`/urls/${key}`%>>Edit</a>
         <button type = "submit" value = "Delete">Delete</button>
+        <p>Date created: <%= urls[key].timestamps[0] %> </p>
+        <% if (urls[key].visitors) { %>
+          <p>Visitors:<%= urls[key].visitors %> </p>
+          <p>Unique Visitors: <%= urls[key].uniqueVisitors %> </p>
+        <% } %>
         </li>
       </form>
-
-
       <% } %>
+      <a href = "/urls/new"><h6>Create a New Short Link</h6></a>
   </ul>
 </body>
 </html>

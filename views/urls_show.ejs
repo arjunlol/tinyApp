@@ -18,9 +18,10 @@
   <% if (urls[shortURL].visitors) { %>
     <h5> Unquie Visitors: <%= urls[shortURL].uniqueVisitors%> </h5>
    <% for (let i = urls[shortURL].visitorID.length -1; i >= 0; i--) { %>
-      <li>Visitor: <%= urls[shortURL].visitorID[i] %> Time: <%= urls[shortURL].timestamps[i]%> </li>
+      <li>Visitor: <%= urls[shortURL].visitorID[i] %> Time: <%= urls[shortURL].timestamps[i+1]%> </li>
     <% } %>
   <% } %>
+  <p>Date Created: <%= urls[shortURL].timestamps[0] %></p>
 
 
 

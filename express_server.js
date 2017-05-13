@@ -108,7 +108,12 @@ const visitors = {
 }
 
 app.get("/", (req, res) => {
-  res.end("Hello!");
+  //if user if logged in redirect to /urls
+  if (req.session.username) {
+    res.redirect("/urls");
+  } else { // else to /login
+    res.redirect("/login");
+  }
 });
 
 //body-parser library allows to access POST request params
@@ -144,6 +149,8 @@ app.post("/urls", (req, res) => {
   urlDatabase[urlShortened] = {};
   urlDatabase[urlShortened]["urlLong"] = req.body.longURL;
   urlDatabase[urlShortened].userID = req.session.username.id;
+  urlDatabase[urlShortened].timestamps = [new Date()]; //first index reps date created
+
   console.log(urlDatabase);
   res.redirect(`/urls/${urlShortened}`);
 });
@@ -207,7 +214,7 @@ app.get("/u/:shortURL", (req, res) => {
     //add to visitor id & timespamps array
     if (!urlDatabase[req.params.shortURL].visitorID) {
       urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].timestamps = [new Date()];
+      urlDatabase[req.params.shortURL].timestamps.push(new Date());
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
     } else {
       urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
@@ -221,8 +228,8 @@ app.get("/u/:shortURL", (req, res) => {
     //add to visitor id & timespamps array
     if (!urlDatabase[req.params.shortURL].visitorID) {
       urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].timestamps = [new Date()];
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
+      urlDatabase[req.params.shortURL].timestamps.push(new Date());
     } else {
       urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
       urlDatabase[req.params.shortURL].timestamps.push(new Date());
@@ -233,8 +240,8 @@ app.get("/u/:shortURL", (req, res) => {
     visitors[req.session.visitor].timestamps.push(new Date());
     if (!urlDatabase[req.params.shortURL].visitorID) {
       urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].timestamps = [new Date()];
       urlDatabase[req.params.shortURL].uniqueVisitors = 1;
+      urlDatabase[req.params.shortURL].timestamps.push(new Date());
     } else {
       urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
       urlDatabase[req.params.shortURL].timestamps.push(new Date());
@@ -286,9 +293,7 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password:  bcrypt.hashSync(req.body.password,10)
   }
-console.log(users);
   req.session.username = users[randomID];
-  console.log(req.session.username);
   let templateVars = {urls: urlDatabase,
     username: req.session.username,
   };
@@ -314,6 +319,13 @@ app.get("/urls", (req, res) => {
 //route hander for page displaying single URL & shortened form
 //end point formatted as ex. /urls/b2xVn2
 app.get("/urls/:id", (req, res) => {
+  //error message if url does not exist
+  if(!urlDatabase[req.params.id]){
+    res.status(404).send("URL does not exist!");
+    return;
+  }
+
+
   if (req.session.username && req.session.username.id === urlDatabase[req.params.id].userID) {
     let templateVars = { shortURL: req.params.id,
     urls: urlDatabase,
