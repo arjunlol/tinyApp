@@ -66,6 +66,23 @@ function isVisitorUnique (visitor, shorturl) {
   return true;
 };
 
+//only handles links for http
+//checks if longurl has http at the start or wwww. defaults to https
+function makeProperURL (longurl) {
+  let properURL = "";
+  if (longurl[0] === ".") { //if user enter .google.com
+    longurl = longurl.slice(1);
+  }
+  if (longurl.search("http") > -1 ) {
+    properURL += longurl;
+  } else if (longurl.search("www") > -1) {
+    properURL += "https://" + longurl;
+  } else {
+    properURL += "https://www." + longurl;
+  }
+  return properURL;
+};
+
 let urlDatabase = {
   // example object inside database below
   // "b2xVn2": {
@@ -162,7 +179,7 @@ app.get("/urls", (req, res) => {
   }
 });
 
-//adds post paramater to urlDatabase with short url key
+//adds post paramater to urlDatabase with short url key. urls_new post form
 app.post("/urls", (req, res) => {
   if(!req.session.username){
     res.status(403).send("Please login or register!");
@@ -283,7 +300,7 @@ app.get("/u/:shortURL", (req, res) => {
   } else { //else user visitor cookie and is not unique
     urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
   }
-  res.redirect("http://"+longURL);
+  res.redirect(makeProperURL(longURL));
 });
 
 //post route that removes URL resource and redirects to index page
