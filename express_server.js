@@ -85,7 +85,7 @@ const users = {
   //   email: "user@example.com",
   //   password: iddd
   // }
-}
+};
 
 const visitors = {
   //example visitors object below, help keep track of urls visited by session.visitor cookies
@@ -94,7 +94,7 @@ const visitors = {
   //   shorturls: ["test","test2"],
   //   timestamps: []
   // }
-}
+};
 
 app.get("/", (req, res) => {
   //if user is logged in redirect to /urls
@@ -108,9 +108,8 @@ app.get("/", (req, res) => {
 
 //use urls_new template to render /urls/new endpoint
 app.get("/urls/new", (req, res) => {
-
   //if not logged in redirect to login page
-  if (!req.session.username){
+  if (!req.session.username) {
     res.redirect("/login");
     return;
   };
@@ -122,15 +121,36 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+//route hander for page displaying single URL & shortened form
+//end point formatted as ex. /urls/b2xVn2
+app.get("/urls/:id", (req, res) => {
+  //error message if url does not exist
+  if(!urlDatabase[req.params.id]){
+    res.status(404).send("URL does not exist!");
+  } else if (!req.session.username) { //user not logged in
+    res.redirect("/login");
+  } else if (req.session.username.id === urlDatabase[req.params.id].userID) { //logged in user owns shorturl
+    let templateVars = {
+      shortURL: req.params.id,
+      urls: urlDatabase,
+      username: req.session.username,
+      visit: visitors
+    };
+    res.render("urls_show", templateVars);
+  } else { //logged in user doesn't own shorturl
+    res.status(400).send("That's not your url!");
+  };
+});
+
 //updates url resource
 app.put("/urls/:id", (req, res) => {
   if(!req.session.username){
-    res.status(400).send("Please login or register!");
+    res.status(403).send("Please login or register!");
     return;
   }
 
   if (!req.session.username.id === urlDatabase[req.params.id].userID) {
-    res.status(400).send("That's not your url!");
+    res.status(403).send("That's not your url!");
     return;
   };
 
@@ -142,7 +162,7 @@ app.put("/urls/:id", (req, res) => {
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
     if(!req.session.username){
-      res.status(400).send("Please login or register!");
+      res.status(403).send("Please login or register!");
     return;
   }
   let urlShortened = generateRandomString();
@@ -333,28 +353,6 @@ app.get("/urls", (req, res) => {
 });
 
 
-//route hander for page displaying single URL & shortened form
-//end point formatted as ex. /urls/b2xVn2
-app.get("/urls/:id", (req, res) => {
-  //error message if url does not exist
-  if(!urlDatabase[req.params.id]){
-    res.status(404).send("URL does not exist!");
-    return;
-  }
-
-
-  if (req.session.username && req.session.username.id === urlDatabase[req.params.id].userID) {
-    let templateVars = { shortURL: req.params.id,
-    urls: urlDatabase,
-    username: req.session.username,
-    visit: visitors
-  };
-    res.render("urls_show", templateVars);
-  } else {
-    res.status(400).send("That's not your url!");
-    return;
-  };
-});
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
