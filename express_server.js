@@ -53,7 +53,7 @@ function findUrlsForUser (id) {
 };
 
 //returns false if visitor is not unique to given url and true if never visited url
-function isVisitorUnique(visitor, shorturl){
+function isVisitorUnique (visitor, shorturl) {
   for (let id in visitors) {
     if (id === visitor){
       for (let index of visitors[visitor].shorturls) {
@@ -64,7 +64,16 @@ function isVisitorUnique(visitor, shorturl){
     }
   }
   return true;
-}
+};
+
+//user is logged in if username cookie exists on browser
+function isUserLoggedIn () {
+  if (req.session.username){
+    return true;
+  } else {
+    return false;
+  }
+};
 
 let urlDatabase = {
   // example object inside database below
@@ -98,7 +107,7 @@ const visitors = {
 
 app.get("/", (req, res) => {
   //if user is logged in redirect to /urls
-  if (req.session.username) {
+  if (isUserLoggedIn()) {
     res.redirect("/urls");
   } else { // else to /login
     res.redirect("/login");
@@ -108,9 +117,8 @@ app.get("/", (req, res) => {
 
 //use urls_new template to render /urls/new endpoint
 app.get("/urls/new", (req, res) => {
-
   //if not logged in redirect to login page
-  if (!req.session.username){
+  if (!isUserLoggedIn()){
     res.redirect("/login");
     return;
   };
@@ -124,7 +132,7 @@ app.get("/urls/new", (req, res) => {
 
 //updates url resource
 app.put("/urls/:id", (req, res) => {
-  if(!req.session.username){
+  if(!isUserLoggedIn()){
     res.status(400).send("Please login or register!");
     return;
   }
@@ -141,7 +149,7 @@ app.put("/urls/:id", (req, res) => {
 
 //adds post paramater to urlDatabase with short url key
 app.post("/urls", (req, res) => {
-    if(!req.session.username){
+    if(!isUserLoggedIn()){
       res.status(400).send("Please login or register!");
     return;
   }
@@ -183,7 +191,7 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req,res) => {
-  if (req.session.username) {
+  if (isUserLoggedIn()) {
     res.redirect('/urls');
   } else {
   res.render('login');
@@ -268,7 +276,7 @@ app.get("/u/:shortURL", (req, res) => {
 //post route that removes URL resource and redirects to index page
 app.delete("/urls/:id/delete", (req, res) => {
   //only delete if the user created that link
-  if (req.session.username && req.session.username.id === urlDatabase[req.params.id].userID) {
+  if (isUserLoggedIn() && req.session.username.id === urlDatabase[req.params.id].userID) {
     delete urlDatabase[req.params.id];
     res.redirect("/urls");
   } else {
@@ -280,7 +288,7 @@ app.delete("/urls/:id/delete", (req, res) => {
 //returns page that includes form with email + password field
 app.get("/register", (req, res) => {
 
-  if (req.session.username) {
+  if (isUserLoggedIn()) {
     res.redirect('/urls');
   } else {
     res.render("register");
@@ -321,7 +329,7 @@ app.post("/register", (req, res) => {
 
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
-  if (!req.session.username) {
+  if (!isUserLoggedIn()) {
     res.status(400).send("Please Login or Register");
     return;
   } else {
@@ -343,7 +351,7 @@ app.get("/urls/:id", (req, res) => {
   }
 
 
-  if (req.session.username && req.session.username.id === urlDatabase[req.params.id].userID) {
+  if (isUserLoggedIn() && req.session.username.id === urlDatabase[req.params.id].userID) {
     let templateVars = { shortURL: req.params.id,
     urls: urlDatabase,
     username: req.session.username,
