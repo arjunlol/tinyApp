@@ -124,39 +124,33 @@ app.get("/urls/new", (req, res) => {
 //route hander for page displaying single URL & shortened form
 //end point formatted as ex. /urls/b2xVn2
 app.get("/urls/:id", (req, res) => {
-  //error message if url does not exist
-  if(!urlDatabase[req.params.id]){
+  if(!urlDatabase[req.params.id]){//error message if url does not exist
     res.status(404).send("URL does not exist!");
   } else if (!req.session.username) { //user not logged in
     res.redirect("/login");
   } else if (req.session.username.id === urlDatabase[req.params.id].userID) { //logged in user owns shorturl
-    let templateVars = {
+    let templateVars = { //passes this object to html rendered page
       shortURL: req.params.id,
       urls: urlDatabase,
       username: req.session.username,
-      visit: visitors
     };
     res.render("urls_show", templateVars);
   } else { //logged in user doesn't own shorturl
-    res.status(400).send("That's not your url!");
-  };
+    res.status(403).send("That's not your url!");
+  }
 });
 
 //updates url resource
 app.put("/urls/:id", (req, res) => {
-  if(!req.session.username){
+  if(!req.session.username){ //not logged in
     res.status(403).send("Please login or register!");
-    return;
-  }
-
-  if (!req.session.username.id === urlDatabase[req.params.id].userID) {
+  } else if (req.session.username.id !== urlDatabase[req.params.id].userID) { //logged in user not same as owner of shorturl
     res.status(403).send("That's not your url!");
-    return;
-  };
-
-  urlDatabase[req.params.id].urlLong = req.body.updatedLongURL;
-  urlDatabase[req.params.id].userID = req.session.username.id;
-  res.redirect("/urls");
+  } else { //user owns shorturl
+    urlDatabase[req.params.id].urlLong = req.body.updatedLongURL;
+    urlDatabase[req.params.id].userID = req.session.username.id;
+    res.redirect("/urls");
+  }
 });
 
 //adds post paramater to urlDatabase with short url key
