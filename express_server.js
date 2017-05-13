@@ -92,7 +92,6 @@ const visitors = {
   // "visitorID": {
   //   id: "visitorID",
   //   shorturls: ["test","test2"],
-  //   timestamps: []
   // }
 };
 
@@ -178,9 +177,6 @@ app.post("/urls", (req, res) => {
     "visitorID": [],
     "timestamps": [new Date()] //first index reps date created]
   };
-  // urlDatabase[urlShortened]["urlLong"] = req.body.longURL;
-  // urlDatabase[urlShortened].userID = req.session.username.id;
-  // urlDatabase[urlShortened].timestamps = [new Date()]; //first index reps date created
   res.redirect(`/urls/${urlShortened}`);
 });
 
@@ -215,17 +211,6 @@ app.post("/login", (req, res) => {
       req.session.username = users[match];
       res.redirect('/');
   }
-
-
-  // if (match === 1){
-  //   res.status(403).send("Invalid Password");
-  // } else if (match === 2){
-  //   res.status(403).send("Email not found");
-  // } else {
-  //   //set cookie parameter to value submitted in request body form username
-  //   req.session.username = users[match];
-  //   res.redirect('/');
-  // }
 });
 
 //logout server logic
@@ -279,58 +264,24 @@ app.get("/u/:shortURL", (req, res) => {
   }
 
   let longURL = urlDatabase[req.params.shortURL].urlLong;
-  //track how many visitors
-  if (!urlDatabase[req.params.shortURL].visitors) {
-    urlDatabase[req.params.shortURL].visitors = 1;
-  } else {
+  //track how many visitors, and timestamps
   urlDatabase[req.params.shortURL].visitors += 1;
-  }
+  urlDatabase[req.params.shortURL].timestamps.push(new Date());
 
-  //make the visitors object if no session cookie
-  if (!req.session.visitor) {
+  if (!req.session.visitor) { //make the visitors object if no session cookie
     req.session.visitor = generateRandomString();
-    console.log(req.session.visitor);
-    visitors[req.session.visitor] = {
+    urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
+    urlDatabase[req.params.shortURL].uniqueVisitors += 1; //if no cookie visitor must be unique
+    visitors[req.session.visitor] = { //easier to track which visitor visited which site
       id: req.session.visitor,
       shorturls: [req.params.shortURL],
-      timestamps: [new Date()]
     };
-    //add to visitor id & timespamps array
-    if (!urlDatabase[req.params.shortURL].visitorID) {
-      urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].timestamps.push(new Date());
-      urlDatabase[req.params.shortURL].uniqueVisitors = 1;
-    } else {
-      urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
-      urlDatabase[req.params.shortURL].timestamps.push(new Date());
-      urlDatabase[req.params.shortURL].uniqueVisitors += 1;
-    }
-    //else user has a cookie, and is unique
-  } else if (isVisitorUnique(req.session.visitor, req.params.shortURL)) {
-    visitors[req.session.visitor].shorturls.push(req.params.shortURL);
-    visitors[req.session.visitor].timestamps.push(new Date());
-    //add to visitor id & timespamps array
-    if (!urlDatabase[req.params.shortURL].visitorID) {
-      urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].uniqueVisitors = 1;
-      urlDatabase[req.params.shortURL].timestamps.push(new Date());
-    } else {
-      urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
-      urlDatabase[req.params.shortURL].timestamps.push(new Date());
-      urlDatabase[req.params.shortURL].uniqueVisitors += 1;
-    }
-    //else user visitor cookie and is not unique
-  } else {
-    visitors[req.session.visitor].timestamps.push(new Date());
-    if (!urlDatabase[req.params.shortURL].visitorID) {
-      urlDatabase[req.params.shortURL].visitorID = [req.session.visitor];
-      urlDatabase[req.params.shortURL].uniqueVisitors = 1;
-      urlDatabase[req.params.shortURL].timestamps.push(new Date());
-    } else {
-      urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
-      urlDatabase[req.params.shortURL].timestamps.push(new Date());
-    }
-
+  } else if (isVisitorUnique(req.session.visitor, req.params.shortURL)) { //else if user has a cookie, and is unique
+    urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor); //add to visitor id & timespamps array
+    urlDatabase[req.params.shortURL].uniqueVisitors += 1;
+    visitors[req.session.visitor].shorturls.push(req.params.shortURL); //ad to list of urls visited
+  } else { //else user visitor cookie and is not unique
+    urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
   }
   res.redirect("http://"+longURL);
 });
@@ -343,7 +294,6 @@ app.delete("/urls/:id/delete", (req, res) => {
     res.redirect("/urls");
   } else {
     res.status(404).send("That's not your url!");
-    return;
   }
 });
 
