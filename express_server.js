@@ -210,7 +210,7 @@ app.get("/login", (req,res) => {
 //handle header form submission to login, redirect to /urls
 app.post("/login", (req, res) => {
   if(req.body.email === "" ||  req.body.password === ""){ //if user or pass left empty
-    res.status(400).send("Please fill in both email and password");
+    res.status(400).sendfnu("Please fill in both email and password");
     return;
   }
   let user = {
@@ -234,7 +234,7 @@ app.post("/login", (req, res) => {
 
 //logout server logic
 app.post("/logout", (req, res) => {
-  req.session.username = null;
+  req.session = null;
   res.redirect("/urls");
 });
 
