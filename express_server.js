@@ -154,14 +154,16 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
+let loginHTML = "<html><body>Please <a href = '/login'>login</a> or <a href = '/register'>register</a>!</body></html>";
+
 //updates url resource
 app.put("/urls/:id", (req, res) => {
   if(!req.session.username){ //not logged in
-    res.status(403).send("Please login or register!");
+    res.status(403).send(loginHTML);
   } else if (req.session.username.id !== urlDatabase[req.params.id].userID) { //logged in user not same as owner of shorturl
     res.status(403).send("That's not your url!");
   } else { //user owns shorturl
-    urlDatabase[req.params.id].urlLong = req.body.updatedLongURL;
+    urlDatabase[req.params.id].urlLong = makeProperURL(req.body.updatedLongURL);
     urlDatabase[req.params.id].userID = req.session.username.id;
     res.redirect("/urls");
   }
@@ -170,7 +172,7 @@ app.put("/urls/:id", (req, res) => {
 // route handler for /urls to pass URL data to template
 app.get("/urls", (req, res) => {
   if (!req.session.username) { //not logged in
-    res.status(403).send("Please Login or Register");
+    res.status(403).send(loginHTML);
   } else { //user logged in, only send subset of url database that belongs to user
     let id = req.session.username.id;
     let templateVars = { urls: findUrlsForUser(id),
@@ -182,12 +184,12 @@ app.get("/urls", (req, res) => {
 //adds post paramater to urlDatabase with short url key. urls_new post form
 app.post("/urls", (req, res) => {
   if(!req.session.username){
-    res.status(403).send("Please login or register!");
+    res.status(403).send(loginHTML);
     return;
   }
   let urlShortened = generateRandomString();
   urlDatabase[urlShortened] = {
-    "urlLong": req.body.longURL,
+    "urlLong": makeProperURL(req.body.longURL),
     "userID": req.session.username.id,
     "visitors": 0, //keep track how many times URL visited
     "uniqueVisitors": 0,
@@ -232,7 +234,7 @@ app.post("/login", (req, res) => {
 
 //logout server logic
 app.post("/logout", (req, res) => {
-  req.session = null;
+  req.session.username = null;
   res.redirect("/urls");
 });
 
@@ -300,7 +302,7 @@ app.get("/u/:shortURL", (req, res) => {
   } else { //else user visitor cookie and is not unique
     urlDatabase[req.params.shortURL].visitorID.push(req.session.visitor);
   }
-  res.redirect(makeProperURL(longURL));
+  res.redirect(longURL);
 });
 
 //post route that removes URL resource and redirects to index page

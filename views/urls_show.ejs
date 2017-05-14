@@ -2,30 +2,26 @@
 <html land ="en">
 <head></head>
 
-<body>
+<body style="padding:50px;">
   <% include ./partials/_header %>
-    <!-- display full URL with its shortened form-->
-
-  <!-- form submits an updated long URL -->
+  <h4><a href = "/urls">Links Dashboard</a></h4>
+  <!-- form submits an updated long URL, method overides to put -->
   <form action= <%=`/urls/${shortURL}?_method=PUT`%> method="POST" style="margin:150px;">
-    <h3> <%= urls[shortURL].urlLong %> <%= shortURL %></h3>
-    <input type = "text" name = "updatedLongURL">
-    <button type = "Submit" value = "Update">Update</button>
+    <!-- display full URL with its shortened form-->
+    <h4> <a href = "<%=urls[shortURL].urlLong%>"><%= urls[shortURL].urlLong %></a> shortened to <a href = "/u/<%=shortURL%>"><%= shortURL %>!</a> </h4>
+    <p><small>go ahead give it a try</small></p>
+    <input type = "text" name = "updatedLongURL" placeholder="http://" style="width: 300px">
+    <button type = "Submit" value = "Update" >Update</button>
   </form>
-  <% if (urls[shortURL].visitors) { %>
-    <h5> Visitors: <%= urls[shortURL].visitors%> </h5>
-  <% } %>
-  <% if (urls[shortURL].visitors) { %>
-    <h5> Unquie Visitors: <%= urls[shortURL].uniqueVisitors%> </h5>
-   <% for (let i = urls[shortURL].visitorID.length -1; i >= 0; i--) { %>
-      <li>Visitor: <%= urls[shortURL].visitorID[i] %> Time: <%= urls[shortURL].timestamps[i+1]%> </li>
-    <% } %>
-  <% } %>
+  <!-- Display analytics-->
+  <h4>Your Tiny URL Analytics</h4>
   <p>Date Created: <%= urls[shortURL].timestamps[0] %></p>
-
-
-
-
-
+  <p> Visitors: <%= urls[shortURL].visitors%> </p>
+  <p> Unique Visitors: <%= urls[shortURL].uniqueVisitors%> </p>
+  <p> Log:</p>
+  <!-- loops through all visitors and show id and timestamp of visit -->
+ <% for (let i = urls[shortURL].visitorID.length -1; i >= 0; i--) { %>
+    <p><small>Visitor: <%= urls[shortURL].visitorID[i] %> Time: <%= urls[shortURL].timestamps[i+1]%></small></p>
+  <% } %>
 </body>
 </html>

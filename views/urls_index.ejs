@@ -2,29 +2,37 @@
 <html land ="en">
 
 <head></head>
-<body>
+<body style="padding:50px;">
   <% include ./partials/_header %>
 
-  <h2>Links</h2>
+  <h3>Check out your tiny links!</h3>
   <!-- list of all shortened urls and links-->
-  <ul>
+    <a href = "/urls/new"><h4>Make More</h4></a>
+    <table style = "width:80%" cellpadding="10">
+      <tr>
+        <th>Tiny URL</th>
+        <th>Long URL</th>
+        <th>Visitors</th>
+        <th>Unique Visitors</th>
+        <th>Date created</th>
+        <th>Options</th>
+      </tr>
     <!-- loop through all short urls in url database object -->
     <!-- short url, long url, edit, delete in list -->
     <% for (var key in urls) { %>
       <!-- method override, post action to delete -->
+      <tr>
       <form method="POST" action= <%=`/urls/${key}/delete?_method=DELETE`%> >
-        <li><%= key %> - <%= urls[key].urlLong %>
-        <a href = <%=`/urls/${key}`%>>Edit</a>
-        <button type = "submit" value = "Delete">Delete</button>
-        <p>Date created: <%= urls[key].timestamps[0] %> </p>
-        <% if (urls[key].visitors) { %>
-          <p>Visitors:<%= urls[key].visitors %> </p>
-          <p>Unique Visitors: <%= urls[key].uniqueVisitors %> </p>
-        <% } %>
-        </li>
+        <th><a href = "/u/<%=key%>"><%= key %></a></th>
+        <th><a href = "<%=urls[key].urlLong%>"><%= urls[key].urlLong %></a></th>
+        <th><%= urls[key].visitors %> </th>
+        <th><%= urls[key].uniqueVisitors %></th>
+        <th><%= urls[key].timestamps[0] %></th>
+        <th><a href = <%=`/urls/${key}`%>>Edit</a>
+        <button type = "submit" value = "Delete">Delete</button></th>
       </form>
       <% } %>
-      <a href = "/urls/new"><h6>Create a New Short Link</h6></a>
-  </ul>
+      </tr>
+    </table>
 </body>
 </html>
